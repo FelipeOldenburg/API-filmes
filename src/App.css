@@ -1,0 +1,305 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f4f6f8;
+  color: #18212f;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  min-height: 40px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  background: #f2aa4c;
+  color: #18212f;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a {
+  align-items: center;
+  border-radius: 8px;
+  color: inherit;
+  display: inline-flex;
+  font-weight: 700;
+  justify-content: center;
+  text-decoration: none;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 24px;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.brand {
+  color: #18212f;
+  font-size: 28px;
+  min-height: 0;
+}
+
+.auth-box {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.auth-box input,
+.search input,
+textarea {
+  border: 1px solid #c8d1da;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.auth-box small {
+  color: #b42318;
+  width: 100%;
+}
+
+.toolbar {
+  align-items: end;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr minmax(240px, 360px);
+  margin-bottom: 28px;
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categories button {
+  background: #ffffff;
+  border: 1px solid #d8dee6;
+}
+
+.categories button.active {
+  background: #2f8f83;
+  border-color: #2f8f83;
+  color: #ffffff;
+}
+
+.search {
+  display: grid;
+  gap: 6px;
+}
+
+.search span,
+.section-title span,
+.movie-info p,
+.list-panel p,
+.meta,
+time {
+  color: #5f6b7a;
+}
+
+.section-title {
+  align-items: end;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 24px 0 12px;
+}
+
+.section-title h1,
+.details h1 {
+  font-size: 30px;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.movie-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.movie-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.movie-card {
+  background: #ffffff;
+  border: 1px solid #e1e7ee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.movie-card img {
+  aspect-ratio: 2 / 3;
+  background: #d8dee6;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.movie-info {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.movie-info h2 {
+  font-size: 17px;
+  letter-spacing: 0;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 42px;
+}
+
+.movie-info p {
+  margin: 0;
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.actions a,
+.back {
+  background: #18212f;
+  color: #ffffff;
+  padding: 10px;
+}
+
+.list-panel,
+.details,
+.comments {
+  background: #ffffff;
+  border: 1px solid #e1e7ee;
+  border-radius: 8px;
+  margin-top: 28px;
+  padding: 18px;
+}
+
+.list-panel {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.list-panel h2,
+.list-panel p,
+.comments h2 {
+  margin: 0;
+}
+
+.message,
+.empty {
+  background: #ffffff;
+  border: 1px solid #e1e7ee;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.error {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+.details {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+}
+
+.details img {
+  border-radius: 8px;
+  width: 100%;
+}
+
+.details p {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.back {
+  margin-bottom: 16px;
+}
+
+.comments {
+  display: grid;
+  gap: 14px;
+}
+
+.comments form {
+  display: grid;
+  gap: 10px;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.comment {
+  border-top: 1px solid #e1e7ee;
+  display: grid;
+  gap: 4px;
+  padding-top: 12px;
+}
+
+.comment p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  main {
+    padding: 16px;
+  }
+
+  .topbar,
+  .toolbar,
+  .section-title,
+  .list-panel,
+  .details {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .auth-box {
+    justify-content: stretch;
+  }
+
+  .auth-box input,
+  .auth-box button,
+  .list-panel button {
+    width: 100%;
+  }
+}
