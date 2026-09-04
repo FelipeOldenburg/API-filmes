@@ -331,7 +331,7 @@ function SiteIntro({ onComplete }) {
         muted
         playsInline
         preload="auto"
-        poster="/cineatlas-intro.png"
+        poster="/cineatlas-intro.jpg"
         aria-hidden="true"
         onEnded={onComplete}
         onError={onComplete}
