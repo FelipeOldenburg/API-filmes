@@ -411,13 +411,36 @@ button:disabled {
   display: none;
 }
 
+.site-intro {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.site-intro video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.site-intro .button {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+}
+
 .hero {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
   align-items: end;
   gap: var(--space-10);
-  min-height: 720px;
+  min-height: 90vh;
+  min-height: 90svh;
   padding: 148px max(32px, calc((100vw - var(--container)) / 2)) 82px;
   overflow: hidden;
   isolation: isolate;
@@ -439,23 +462,6 @@ button:disabled {
   background:
     linear-gradient(90deg, rgba(11, 16, 24, 0.96) 0%, rgba(11, 16, 24, 0.68) 44%, rgba(11, 16, 24, 0.22) 100%),
     linear-gradient(180deg, rgba(11, 16, 24, 0.2) 0%, var(--background) 94%);
-}
-
-.hero-video {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.92;
-}
-
-.hero-motion-button {
-  position: absolute;
-  z-index: 3;
-  top: calc(var(--header-height) + var(--space-4));
-  right: max(24px, calc((100vw - var(--container)) / 2));
 }
 
 .hero::after {
@@ -1457,7 +1463,6 @@ time {
 
   .hero {
     grid-template-columns: 1fr;
-    min-height: 660px;
     padding-right: min(30vw, 260px);
     background-position: 60% center;
   }
@@ -1560,7 +1565,6 @@ time {
   }
 
   .hero {
-    min-height: 620px;
     padding: 128px 24px 72px;
   }
 
@@ -1621,7 +1625,6 @@ time {
   }
 
   .hero {
-    min-height: 600px;
     padding: 112px min(132px, 30vw) 56px 16px;
     background-position: 63% center;
   }
@@ -1814,14 +1817,6 @@ time {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-video {
-    display: none;
-  }
-
-  .hero-video.is-enabled {
-    display: block;
-  }
-
   .cursor-trail-poster {
     opacity: 0.96;
     filter: saturate(1.12) contrast(1.05);

@@ -27,6 +27,7 @@ import {
 
 const API = "https://api.themoviedb.org/3";
 const KEY = import.meta.env.REACT_APP_KEY;
+const INTRO_SEEN_KEY = "cineatlas_intro_seen";
 const POSTER_IMG = "https://image.tmdb.org/t/p/w500";
 const BACKDROP_IMG = "https://image.tmdb.org/t/p/w1280";
 const POSTER_FALLBACK = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -195,6 +196,11 @@ function App() {
   );
   const [authError, setAuthError] = useState("");
   const [toast, setToast] = useState("");
+  const [showIntro, setShowIntro] = useState(
+    () =>
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      sessionStorage.getItem(INTRO_SEEN_KEY) !== "1"
+  );
 
   useEffect(() => {
     localStorage.setItem("movie_users", JSON.stringify(users));
@@ -257,6 +263,11 @@ function App() {
     setToast("Sessao encerrada.");
   }
 
+  function dismissIntro() {
+    sessionStorage.setItem(INTRO_SEEN_KEY, "1");
+    setShowIntro(false);
+  }
+
   function toggleFavorite(movie) {
     if (!currentUser) {
       setAuthError("Entre para salvar favoritos.");
@@ -289,14 +300,48 @@ function App() {
   };
 
   return (
-    <div className="app-shell">
-      <Routes>
-        <Route path="/" element={<Home {...sharedProps} />} />
-        <Route path="/movie/:id" element={<MovieDetails {...sharedProps} />} />
-        <Route path="*" element={<Home {...sharedProps} />} />
-      </Routes>
-      <Toast message={toast} />
-    </div>
+    <>
+      {showIntro && <SiteIntro onComplete={dismissIntro} />}
+      <div
+        className="app-shell"
+        aria-hidden={showIntro || undefined}
+        inert={showIntro ? "" : undefined}
+      >
+        <Routes>
+          <Route path="/" element={<Home {...sharedProps} />} />
+          <Route path="/movie/:id" element={<MovieDetails {...sharedProps} />} />
+          <Route path="*" element={<Home {...sharedProps} />} />
+        </Routes>
+        <Toast message={toast} />
+      </div>
+    </>
+  );
+}
+
+function SiteIntro({ onComplete }) {
+  return (
+    <section
+      className="site-intro"
+      role="dialog"
+      aria-label="Abertura do CineAtlas"
+      aria-modal="true"
+    >
+      <video
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        poster="/cineatlas-intro.png"
+        aria-hidden="true"
+        onEnded={onComplete}
+        onError={onComplete}
+      >
+        <source src="/cineatlas-intro.mp4" type="video/mp4" />
+      </video>
+      <button className="button button-secondary" type="button" onClick={onComplete} autoFocus>
+        Pular abertura
+      </button>
+    </section>
   );
 }
 
@@ -747,98 +792,6 @@ function Home(props) {
   );
 }
 
-function HeroVideo() {
-  const videoRef = useRef(null);
-  const [isMotionEnabled, setIsMotionEnabled] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncPreference = () => setPrefersReducedMotion(reducedMotion.matches);
-
-    syncPreference();
-    reducedMotion.addEventListener("change", syncPreference);
-    return () => reducedMotion.removeEventListener("change", syncPreference);
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return undefined;
-
-    let isInView = true;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncPlayback = () => {
-      if (
-        document.visibilityState !== "visible" ||
-        !isInView ||
-        (reducedMotion.matches && !isMotionEnabled)
-      ) {
-        video.pause();
-        return;
-      }
-
-      video.play().catch(() => {});
-    };
-    const observer =
-      "IntersectionObserver" in window
-        ? new IntersectionObserver(
-            ([entry]) => {
-              isInView = entry.isIntersecting;
-              syncPlayback();
-            },
-            { threshold: 0.05 }
-          )
-        : null;
-
-    observer?.observe(video);
-    document.addEventListener("visibilitychange", syncPlayback);
-    reducedMotion.addEventListener("change", syncPlayback);
-    syncPlayback();
-
-    return () => {
-      observer?.disconnect();
-      document.removeEventListener("visibilitychange", syncPlayback);
-      reducedMotion.removeEventListener("change", syncPlayback);
-      video.pause();
-    };
-  }, [isMotionEnabled]);
-
-  return (
-    <>
-      <video
-        className={`hero-video ${!prefersReducedMotion || isMotionEnabled ? "is-enabled" : ""}`}
-        ref={videoRef}
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-        onError={(event) => {
-          event.currentTarget.style.display = "none";
-        }}
-      >
-        <source
-          src="https://raw.githubusercontent.com/FelipeOldenburg/API-filmes/main/public/cinematic-hero.mp4"
-          type="video/mp4"
-        />
-        <source src="/cinematic-hero.mp4" type="video/mp4" />
-      </video>
-      {prefersReducedMotion && !isMotionEnabled && (
-        <button
-          className="button button-secondary button-icon-text hero-motion-button"
-          type="button"
-          onClick={() => setIsMotionEnabled(true)}
-        >
-          <Play size={18} fill="currentColor" aria-hidden="true" />
-          Ativar cena em movimento
-        </button>
-      )}
-    </>
-  );
-}
-
 function MovieCursorTrail({ movies, children }) {
   const [trail, setTrail] = useState([]);
   const lastTrailRef = useRef({ x: 0, y: 0, time: 0 });
@@ -957,7 +910,6 @@ function MovieHero({ movie, loading, favorites, currentUser, onToggleFavorite })
       aria-label={`Filme em destaque: ${movie.title}`}
       style={{ "--hero-image": `url("${backdropUrl(movie)}")` }}
     >
-      <HeroVideo />
       <div className="hero-content">
         <span className="eyebrow hero-kicker">
           <Clapperboard size={16} aria-hidden="true" />
