@@ -174,11 +174,7 @@ function useCategoryReveal() {
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setIsRevealed(true);
-        observer.disconnect();
-      },
+      ([entry]) => setIsRevealed(entry.isIntersecting),
       { threshold: 0.18 }
     );
 
@@ -620,15 +616,15 @@ function Home(props) {
         onLogin={onLogin}
         onLogout={onLogout}
       />
-      <main id="top" className="page">
-        <MovieHero
-          movie={heroMovie}
-          trailMovies={topRated.concat(movies)}
-          loading={topLoading && loading}
-          favorites={favorites}
-          currentUser={currentUser}
-          onToggleFavorite={onToggleFavorite}
-        />
+      <MovieCursorTrail movies={topRated.concat(movies)}>
+        <main id="top" className="page">
+          <MovieHero
+            movie={heroMovie}
+            loading={topLoading && loading}
+            favorites={favorites}
+            currentUser={currentUser}
+            onToggleFavorite={onToggleFavorite}
+          />
 
         <section
           id="categories"
@@ -744,7 +740,8 @@ function Home(props) {
             )}
           </section>
         </div>
-      </main>
+        </main>
+      </MovieCursorTrail>
       <Footer />
     </>
   );
@@ -813,19 +810,13 @@ function HeroVideo() {
   );
 }
 
-function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, onToggleFavorite }) {
+function MovieCursorTrail({ movies, children }) {
   const [trail, setTrail] = useState([]);
   const lastTrailRef = useRef({ x: 0, y: 0, time: 0 });
   const trailIndexRef = useRef(0);
   const trailIdRef = useRef(0);
   const trailTimersRef = useRef(new Set());
-  const isFavorite = movie && favorites.some((item) => item.id === movie.id);
-  const meta = movie
-    ? [year(movie.release_date), movie.vote_count ? `${movie.vote_count} votos` : null]
-        .filter(Boolean)
-        .join(" / ")
-    : "";
-  const availableTrailMovies = trailMovies.filter((item) => item?.poster_path);
+  const availableMovies = movies.filter((movie) => movie?.poster_path);
 
   useEffect(
     () => () => {
@@ -836,44 +827,34 @@ function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, o
 
   function handlePointerMove(event) {
     const target = event.target;
-    const canUseTrail =
-      event.pointerType === "mouse" &&
-      window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (
-      !canUseTrail ||
+      event.pointerType !== "mouse" ||
       !(target instanceof Element) ||
-      target.closest(".hero-content, .hero-poster, a, button, input")
+      target.closest("a, button, input, select, textarea, [role='button']")
     ) {
       return;
     }
 
-    const frame = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - frame.left;
-    const y = event.clientY - frame.top;
+    const x = event.clientX;
+    const y = event.clientY;
     const now = performance.now();
     const lastTrail = lastTrailRef.current;
 
-    if (now - lastTrail.time < 80 || Math.hypot(x - lastTrail.x, y - lastTrail.y) < 44) {
+    if (now - lastTrail.time < 56 || Math.hypot(x - lastTrail.x, y - lastTrail.y) < 28) {
       return;
     }
 
-    const movies = availableTrailMovies.length
-      ? availableTrailMovies
-      : movie?.poster_path
-        ? [movie]
-        : [];
-    if (!movies.length) return;
+    if (!availableMovies.length) return;
 
-    const selectedMovie = movies[trailIndexRef.current % movies.length];
+    const selectedMovie = availableMovies[trailIndexRef.current % availableMovies.length];
     const id = trailIdRef.current;
     trailIndexRef.current += 1;
     trailIdRef.current += 1;
     lastTrailRef.current = { x, y, time: now };
 
     setTrail((items) => [
-      ...items.slice(-6),
+      ...items.slice(-7),
       {
         id,
         src: posterUrl(selectedMovie),
@@ -886,9 +867,45 @@ function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, o
     const timer = window.setTimeout(() => {
       setTrail((items) => items.filter((item) => item.id !== id));
       trailTimersRef.current.delete(timer);
-    }, 650);
+    }, 1000);
     trailTimersRef.current.add(timer);
   }
+
+  return (
+    <div
+      className="movie-cursor-zone"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => setTrail([])}
+    >
+      <div className="cursor-poster-trail" aria-hidden="true">
+        {trail.map((poster) => (
+          <img
+            key={poster.id}
+            className="cursor-trail-poster"
+            src={poster.src}
+            alt=""
+            decoding="async"
+            onError={setFallback}
+            style={{
+              "--trail-x": `${poster.x}px`,
+              "--trail-y": `${poster.y}px`,
+              "--trail-rotate": poster.rotation
+            }}
+          />
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MovieHero({ movie, loading, favorites, currentUser, onToggleFavorite }) {
+  const isFavorite = movie && favorites.some((item) => item.id === movie.id);
+  const meta = movie
+    ? [year(movie.release_date), movie.vote_count ? `${movie.vote_count} votos` : null]
+        .filter(Boolean)
+        .join(" / ")
+    : "";
 
   if (loading && !movie) {
     return (
@@ -910,26 +927,8 @@ function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, o
       className="hero"
       aria-label={`Filme em destaque: ${movie.title}`}
       style={{ "--hero-image": `url("${backdropUrl(movie)}")` }}
-      onPointerMove={handlePointerMove}
     >
       <HeroVideo />
-      <div className="hero-poster-trail" aria-hidden="true">
-        {trail.map((poster) => (
-          <img
-            key={poster.id}
-            className="hero-trail-poster"
-            src={poster.src}
-            alt=""
-            decoding="async"
-            onError={setFallback}
-            style={{
-              "--trail-x": `${poster.x}px`,
-              "--trail-y": `${poster.y}px`,
-              "--trail-rotate": poster.rotation
-            }}
-          />
-        ))}
-      </div>
       <div className="hero-content">
         <span className="eyebrow hero-kicker">
           <Clapperboard size={16} aria-hidden="true" />
@@ -1144,7 +1143,7 @@ function CategoryAtmosphere({ movies }) {
     <div className="category-atmosphere" aria-hidden="true">
       {cast.map((movie, index) => (
         <div className={`category-cast cast-${index}`} key={movie.id}>
-          <img src={movie.poster_path ? posterUrl(movie) : backdropUrl(movie)} alt="" decoding="async" />
+          <img src={movie.backdrop_path ? backdropUrl(movie) : posterUrl(movie)} alt="" decoding="async" />
         </div>
       ))}
     </div>
