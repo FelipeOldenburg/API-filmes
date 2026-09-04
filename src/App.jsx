@@ -804,6 +804,10 @@ function HeroVideo() {
         event.currentTarget.style.display = "none";
       }}
     >
+      <source
+        src="https://raw.githubusercontent.com/FelipeOldenburg/API-filmes/main/public/cinematic-hero.mp4"
+        type="video/mp4"
+      />
       <source src="/cinematic-hero.mp4" type="video/mp4" />
     </video>
   );
