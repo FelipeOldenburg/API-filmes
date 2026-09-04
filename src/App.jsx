@@ -306,15 +306,14 @@ function App() {
 }
 
 function IntroScreen() {
-  const [isVisible, setIsVisible] = useState(
-    () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
+  const [isVisible, setIsVisible] = useState(true);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
     if (!isVisible) return undefined;
-    const timeout = window.setTimeout(() => setIsVisible(false), 1500);
+    const timeout = window.setTimeout(() => setIsVisible(false), reducedMotion ? 800 : 1500);
     return () => window.clearTimeout(timeout);
-  }, [isVisible]);
+  }, [isVisible, reducedMotion]);
 
   if (!isVisible) return null;
 
@@ -1022,7 +1021,7 @@ function CategoryAtmosphere({ movies }) {
     <div className="category-atmosphere" aria-hidden="true">
       {cast.map((movie, index) => (
         <div className={`category-cast cast-${index}`} key={movie.id}>
-          <img src={backdropUrl(movie)} alt="" decoding="async" />
+          <img src={movie.poster_path ? posterUrl(movie) : backdropUrl(movie)} alt="" decoding="async" />
         </div>
       ))}
     </div>
