@@ -294,41 +294,12 @@ function App() {
 
   return (
     <div className="app-shell">
-      <IntroScreen />
       <Routes>
         <Route path="/" element={<Home {...sharedProps} />} />
         <Route path="/movie/:id" element={<MovieDetails {...sharedProps} />} />
         <Route path="*" element={<Home {...sharedProps} />} />
       </Routes>
       <Toast message={toast} />
-    </div>
-  );
-}
-
-function IntroScreen() {
-  const [isVisible, setIsVisible] = useState(true);
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  useEffect(() => {
-    if (!isVisible) return undefined;
-    const timeout = window.setTimeout(() => setIsVisible(false), reducedMotion ? 800 : 1500);
-    return () => window.clearTimeout(timeout);
-  }, [isVisible, reducedMotion]);
-
-  if (!isVisible) return null;
-
-  return (
-    <div className="intro-screen" aria-label="Abertura CineAtlas" role="status">
-      <div className="intro-content">
-        <div className="intro-mark" aria-hidden="true">
-          <Clapperboard size={42} strokeWidth={1.7} />
-          <span>CineAtlas</span>
-        </div>
-        <p>Todo filme comeca em uma cena.</p>
-      </div>
-      <button className="intro-skip" type="button" onClick={() => setIsVisible(false)}>
-        Pular abertura
-      </button>
     </div>
   );
 }
@@ -652,6 +623,7 @@ function Home(props) {
       <main id="top" className="page">
         <MovieHero
           movie={heroMovie}
+          trailMovies={topRated.concat(movies)}
           loading={topLoading && loading}
           favorites={favorites}
           currentUser={currentUser}
@@ -664,7 +636,7 @@ function Home(props) {
           className={`category-stage ${isCategoryRevealed ? "is-revealed" : ""}`}
           aria-labelledby="discover-title"
         >
-          <CategoryAtmosphere movies={movies} />
+          <CategoryAtmosphere key={`${selectedCategory}-${movies[0]?.id ?? "empty"}`} movies={movies} />
           <div className="content-shell category-stage-content">
             <div className="discovery-panel">
             <div className="panel-copy">
@@ -778,13 +750,82 @@ function Home(props) {
   );
 }
 
-function MovieHero({ movie, loading, favorites, currentUser, onToggleFavorite }) {
+function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, onToggleFavorite }) {
+  const [trail, setTrail] = useState([]);
+  const lastTrailRef = useRef({ x: 0, y: 0, time: 0 });
+  const trailIndexRef = useRef(0);
+  const trailIdRef = useRef(0);
+  const trailTimersRef = useRef(new Set());
   const isFavorite = movie && favorites.some((item) => item.id === movie.id);
   const meta = movie
     ? [year(movie.release_date), movie.vote_count ? `${movie.vote_count} votos` : null]
         .filter(Boolean)
         .join(" / ")
     : "";
+  const availableTrailMovies = trailMovies.filter((item) => item?.poster_path);
+
+  useEffect(
+    () => () => {
+      trailTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    },
+    []
+  );
+
+  function handlePointerMove(event) {
+    const target = event.target;
+    const canUseTrail =
+      event.pointerType === "mouse" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (
+      !canUseTrail ||
+      !(target instanceof Element) ||
+      target.closest(".hero-content, .hero-poster, a, button, input")
+    ) {
+      return;
+    }
+
+    const frame = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - frame.left;
+    const y = event.clientY - frame.top;
+    const now = performance.now();
+    const lastTrail = lastTrailRef.current;
+
+    if (now - lastTrail.time < 80 || Math.hypot(x - lastTrail.x, y - lastTrail.y) < 44) {
+      return;
+    }
+
+    const movies = availableTrailMovies.length
+      ? availableTrailMovies
+      : movie?.poster_path
+        ? [movie]
+        : [];
+    if (!movies.length) return;
+
+    const selectedMovie = movies[trailIndexRef.current % movies.length];
+    const id = trailIdRef.current;
+    trailIndexRef.current += 1;
+    trailIdRef.current += 1;
+    lastTrailRef.current = { x, y, time: now };
+
+    setTrail((items) => [
+      ...items.slice(-6),
+      {
+        id,
+        src: posterUrl(selectedMovie),
+        x,
+        y,
+        rotation: `${((id % 5) - 2) * 4}deg`
+      }
+    ]);
+
+    const timer = window.setTimeout(() => {
+      setTrail((items) => items.filter((item) => item.id !== id));
+      trailTimersRef.current.delete(timer);
+    }, 650);
+    trailTimersRef.current.add(timer);
+  }
 
   if (loading && !movie) {
     return (
@@ -806,7 +847,25 @@ function MovieHero({ movie, loading, favorites, currentUser, onToggleFavorite })
       className="hero"
       aria-label={`Filme em destaque: ${movie.title}`}
       style={{ "--hero-image": `url("${backdropUrl(movie)}")` }}
+      onPointerMove={handlePointerMove}
     >
+      <div className="hero-poster-trail" aria-hidden="true">
+        {trail.map((poster) => (
+          <img
+            key={poster.id}
+            className="hero-trail-poster"
+            src={poster.src}
+            alt=""
+            decoding="async"
+            onError={setFallback}
+            style={{
+              "--trail-x": `${poster.x}px`,
+              "--trail-y": `${poster.y}px`,
+              "--trail-rotate": poster.rotation
+            }}
+          />
+        ))}
+      </div>
       <div className="hero-content">
         <span className="eyebrow hero-kicker">
           <Clapperboard size={16} aria-hidden="true" />
