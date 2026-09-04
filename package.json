@@ -4,15 +4,16 @@
   "private": true,
   "dependencies": {
     "@rollup/rollup-win32-x64-msvc": "^4.62.4",
+    "lucide-react": "^1.31.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0"
+    "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
-    "vite": "5.4.11"
+    "vite": "^5.4.21"
   },
   "overrides": {
-    "nanoid": "3.3.8"
+    "nanoid": "3.3.18"
   },
   "scripts": {
     "start": "vite --host 127.0.0.1",
