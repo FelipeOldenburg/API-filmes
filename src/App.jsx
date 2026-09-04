@@ -750,6 +750,65 @@ function Home(props) {
   );
 }
 
+function HeroVideo() {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return undefined;
+
+    let isInView = true;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPlayback = () => {
+      if (document.visibilityState !== "visible" || !isInView || reducedMotion.matches) {
+        video.pause();
+        return;
+      }
+
+      video.play().catch(() => {});
+    };
+    const observer =
+      "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            ([entry]) => {
+              isInView = entry.isIntersecting;
+              syncPlayback();
+            },
+            { threshold: 0.05 }
+          )
+        : null;
+
+    observer?.observe(video);
+    document.addEventListener("visibilitychange", syncPlayback);
+    reducedMotion.addEventListener("change", syncPlayback);
+    syncPlayback();
+
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", syncPlayback);
+      reducedMotion.removeEventListener("change", syncPlayback);
+      video.pause();
+    };
+  }, []);
+
+  return (
+    <video
+      className="hero-video"
+      ref={videoRef}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-hidden="true"
+      onError={(event) => {
+        event.currentTarget.style.display = "none";
+      }}
+    >
+      <source src="/cinematic-hero.mp4" type="video/mp4" />
+    </video>
+  );
+}
+
 function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, onToggleFavorite }) {
   const [trail, setTrail] = useState([]);
   const lastTrailRef = useRef({ x: 0, y: 0, time: 0 });
@@ -849,6 +908,7 @@ function MovieHero({ movie, trailMovies = [], loading, favorites, currentUser, o
       style={{ "--hero-image": `url("${backdropUrl(movie)}")` }}
       onPointerMove={handlePointerMove}
     >
+      <HeroVideo />
       <div className="hero-poster-trail" aria-hidden="true">
         {trail.map((poster) => (
           <img

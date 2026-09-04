@@ -420,28 +420,48 @@ button:disabled {
   min-height: 720px;
   padding: 148px max(32px, calc((100vw - var(--container)) / 2)) 82px;
   overflow: hidden;
+  isolation: isolate;
   background:
-    linear-gradient(90deg, rgba(11, 16, 24, 0.96) 0%, rgba(11, 16, 24, 0.68) 44%, rgba(11, 16, 24, 0.22) 100%),
-    linear-gradient(180deg, rgba(11, 16, 24, 0.2) 0%, var(--background) 94%),
     var(--hero-image) center / cover no-repeat,
     var(--background-soft);
 }
 
+.hero::before,
 .hero::after {
   position: absolute;
+  z-index: 1;
+  content: "";
+  pointer-events: none;
+}
+
+.hero::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(11, 16, 24, 0.96) 0%, rgba(11, 16, 24, 0.68) 44%, rgba(11, 16, 24, 0.22) 100%),
+    linear-gradient(180deg, rgba(11, 16, 24, 0.2) 0%, var(--background) 94%);
+}
+
+.hero-video {
+  position: absolute;
   z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.92;
+}
+
+.hero::after {
   right: 0;
   bottom: 0;
   left: 0;
   height: 36%;
-  content: "";
   background: linear-gradient(180deg, rgba(11, 16, 24, 0), var(--background));
-  pointer-events: none;
 }
 
 .hero-poster-trail {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -466,7 +486,7 @@ button:disabled {
 .hero-content,
 .hero-poster {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   min-width: 0;
 }
 
@@ -1438,7 +1458,7 @@ time {
 
   .hero-poster {
     position: absolute;
-    z-index: 0;
+    z-index: 3;
     right: -18px;
     bottom: 24px;
     display: block;
@@ -1788,6 +1808,7 @@ time {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-video,
   .hero-poster-trail {
     display: none;
   }
