@@ -749,6 +749,19 @@ function Home(props) {
 
 function HeroVideo() {
   const videoRef = useRef(null);
+  const [isMotionEnabled, setIsMotionEnabled] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setPrefersReducedMotion(reducedMotion.matches);
+
+    syncPreference();
+    reducedMotion.addEventListener("change", syncPreference);
+    return () => reducedMotion.removeEventListener("change", syncPreference);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -757,7 +770,11 @@ function HeroVideo() {
     let isInView = true;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPlayback = () => {
-      if (document.visibilityState !== "visible" || !isInView || reducedMotion.matches) {
+      if (
+        document.visibilityState !== "visible" ||
+        !isInView ||
+        (reducedMotion.matches && !isMotionEnabled)
+      ) {
         video.pause();
         return;
       }
@@ -786,27 +803,39 @@ function HeroVideo() {
       reducedMotion.removeEventListener("change", syncPlayback);
       video.pause();
     };
-  }, []);
+  }, [isMotionEnabled]);
 
   return (
-    <video
-      className="hero-video"
-      ref={videoRef}
-      muted
-      loop
-      playsInline
-      preload="metadata"
-      aria-hidden="true"
-      onError={(event) => {
-        event.currentTarget.style.display = "none";
-      }}
-    >
-      <source
-        src="https://raw.githubusercontent.com/FelipeOldenburg/API-filmes/main/public/cinematic-hero.mp4"
-        type="video/mp4"
-      />
-      <source src="/cinematic-hero.mp4" type="video/mp4" />
-    </video>
+    <>
+      <video
+        className={`hero-video ${!prefersReducedMotion || isMotionEnabled ? "is-enabled" : ""}`}
+        ref={videoRef}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        onError={(event) => {
+          event.currentTarget.style.display = "none";
+        }}
+      >
+        <source
+          src="https://raw.githubusercontent.com/FelipeOldenburg/API-filmes/main/public/cinematic-hero.mp4"
+          type="video/mp4"
+        />
+        <source src="/cinematic-hero.mp4" type="video/mp4" />
+      </video>
+      {prefersReducedMotion && !isMotionEnabled && (
+        <button
+          className="button button-secondary button-icon-text hero-motion-button"
+          type="button"
+          onClick={() => setIsMotionEnabled(true)}
+        >
+          <Play size={18} fill="currentColor" aria-hidden="true" />
+          Ativar cena em movimento
+        </button>
+      )}
+    </>
   );
 }
 

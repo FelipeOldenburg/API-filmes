@@ -451,6 +451,13 @@ button:disabled {
   opacity: 0.92;
 }
 
+.hero-motion-button {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--header-height) + var(--space-4));
+  right: max(24px, calc((100vw - var(--container)) / 2));
+}
+
 .hero::after {
   right: 0;
   bottom: 0;
@@ -1809,6 +1816,10 @@ time {
 @media (prefers-reduced-motion: reduce) {
   .hero-video {
     display: none;
+  }
+
+  .hero-video.is-enabled {
+    display: block;
   }
 
   .cursor-trail-poster {
