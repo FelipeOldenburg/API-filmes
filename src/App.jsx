@@ -314,16 +314,34 @@ function App() {
 
 function SiteIntro({ onComplete }) {
   const videoRef = useRef(null);
-  const [needsPlayback, setNeedsPlayback] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [needsSound, setNeedsSound] = useState(false);
 
   useEffect(() => {
-    videoRef.current?.play().catch(() => setNeedsPlayback(true));
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.play().catch(() => {
+      video.muted = true;
+      setIsMuted(true);
+      setNeedsSound(true);
+      video.play().catch(onComplete);
+    });
   }, []);
 
-  function startWithSound() {
-    videoRef.current?.play()
-      .then(() => setNeedsPlayback(false))
-      .catch(() => setNeedsPlayback(true));
+  function enableSound() {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = false;
+    setIsMuted(false);
+    video.play()
+      .then(() => setNeedsSound(false))
+      .catch(() => {
+        video.muted = true;
+        setIsMuted(true);
+        setNeedsSound(true);
+      });
   }
 
   return (
@@ -336,26 +354,26 @@ function SiteIntro({ onComplete }) {
       <video
         ref={videoRef}
         autoPlay
+        muted={isMuted}
         playsInline
         preload="auto"
         aria-hidden="true"
-        onPlay={() => setNeedsPlayback(false)}
         onEnded={onComplete}
         onError={onComplete}
       >
         <source src="/cineatlas-intro.mp4" type="video/mp4" />
       </video>
       <div className="site-intro-actions">
-        {needsPlayback && (
-          <button className="button" type="button" onClick={startWithSound} autoFocus>
-            Tocar com áudio
+        {needsSound && (
+          <button className="button" type="button" onClick={enableSound} autoFocus>
+            Ativar som
           </button>
         )}
         <button
           className="button button-secondary"
           type="button"
           onClick={onComplete}
-          autoFocus={!needsPlayback}
+          autoFocus={!needsSound}
         >
           Pular abertura
         </button>
