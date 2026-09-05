@@ -313,37 +313,6 @@ function App() {
 }
 
 function SiteIntro({ onComplete }) {
-  const videoRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [needsSound, setNeedsSound] = useState(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.play().catch(() => {
-      video.muted = true;
-      setIsMuted(true);
-      setNeedsSound(true);
-      video.play().catch(onComplete);
-    });
-  }, []);
-
-  function enableSound() {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = false;
-    setIsMuted(false);
-    video.play()
-      .then(() => setNeedsSound(false))
-      .catch(() => {
-        video.muted = true;
-        setIsMuted(true);
-        setNeedsSound(true);
-      });
-  }
-
   return (
     <section
       className="site-intro"
@@ -352,9 +321,8 @@ function SiteIntro({ onComplete }) {
       aria-modal="true"
     >
       <video
-        ref={videoRef}
         autoPlay
-        muted={isMuted}
+        muted
         playsInline
         preload="auto"
         aria-hidden="true"
@@ -363,21 +331,9 @@ function SiteIntro({ onComplete }) {
       >
         <source src="/cineatlas-intro.mp4" type="video/mp4" />
       </video>
-      <div className="site-intro-actions">
-        {needsSound && (
-          <button className="button" type="button" onClick={enableSound} autoFocus>
-            Ativar som
-          </button>
-        )}
-        <button
-          className="button button-secondary"
-          type="button"
-          onClick={onComplete}
-          autoFocus={!needsSound}
-        >
-          Pular abertura
-        </button>
-      </div>
+      <button className="button button-secondary" type="button" onClick={onComplete} autoFocus>
+        Pular abertura
+      </button>
     </section>
   );
 }
