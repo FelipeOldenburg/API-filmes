@@ -27,7 +27,6 @@ import {
 
 const API = "https://api.themoviedb.org/3";
 const KEY = import.meta.env.REACT_APP_KEY;
-const INTRO_SEEN_KEY = "cineatlas_intro_seen";
 const POSTER_IMG = "https://image.tmdb.org/t/p/w500";
 const BACKDROP_IMG = "https://image.tmdb.org/t/p/w1280";
 const POSTER_FALLBACK = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -196,11 +195,7 @@ function App() {
   );
   const [authError, setAuthError] = useState("");
   const [toast, setToast] = useState("");
-  const [showIntro, setShowIntro] = useState(
-    () =>
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      sessionStorage.getItem(INTRO_SEEN_KEY) !== "1"
-  );
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     localStorage.setItem("movie_users", JSON.stringify(users));
@@ -264,7 +259,6 @@ function App() {
   }
 
   function dismissIntro() {
-    sessionStorage.setItem(INTRO_SEEN_KEY, "1");
     setShowIntro(false);
   }
 
