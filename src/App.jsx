@@ -313,6 +313,19 @@ function App() {
 }
 
 function SiteIntro({ onComplete }) {
+  const videoRef = useRef(null);
+  const [needsPlayback, setNeedsPlayback] = useState(false);
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => setNeedsPlayback(true));
+  }, []);
+
+  function startWithSound() {
+    videoRef.current?.play()
+      .then(() => setNeedsPlayback(false))
+      .catch(() => setNeedsPlayback(true));
+  }
+
   return (
     <section
       className="site-intro"
@@ -321,20 +334,32 @@ function SiteIntro({ onComplete }) {
       aria-modal="true"
     >
       <video
+        ref={videoRef}
         autoPlay
-        muted
         playsInline
         preload="auto"
-        poster="/cineatlas-intro.jpg"
         aria-hidden="true"
+        onPlay={() => setNeedsPlayback(false)}
         onEnded={onComplete}
         onError={onComplete}
       >
         <source src="/cineatlas-intro.mp4" type="video/mp4" />
       </video>
-      <button className="button button-secondary" type="button" onClick={onComplete} autoFocus>
-        Pular abertura
-      </button>
+      <div className="site-intro-actions">
+        {needsPlayback && (
+          <button className="button" type="button" onClick={startWithSound} autoFocus>
+            Tocar com áudio
+          </button>
+        )}
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={onComplete}
+          autoFocus={!needsPlayback}
+        >
+          Pular abertura
+        </button>
+      </div>
     </section>
   );
 }

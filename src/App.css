@@ -427,10 +427,14 @@ button:disabled {
   object-position: center;
 }
 
-.site-intro .button {
+.site-intro-actions {
   position: absolute;
   right: var(--space-4);
   bottom: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .hero {
@@ -484,7 +488,7 @@ button:disabled {
   left: var(--trail-x);
   top: var(--trail-y);
   display: block;
-  width: clamp(72px, 8vw, 124px);
+  width: clamp(64px, 7vw, 108px);
   aspect-ratio: 2 / 3;
   border: 2px solid rgba(245, 247, 251, 0.62);
   border-radius: var(--radius-md);
@@ -1618,6 +1622,10 @@ time {
 }
 
 @media (max-width: 640px) {
+  .site-intro video {
+    object-fit: contain;
+  }
+
   .content-shell,
   .nav-shell,
   .details-shell {
